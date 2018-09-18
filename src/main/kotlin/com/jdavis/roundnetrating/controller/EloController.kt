@@ -9,38 +9,27 @@ import kotlin.math.roundToInt
 
 class EloController : Controller() {
 
-    val RATING_FACTOR_K = 50
+    val RATING_FACTOR_K = 32
     var teamOneWinProbability: Double = 0.0
     var ratingDelta = 0
     lateinit var playerList: MutableList<Player>
 
-    fun main(args: Array<String>) {
-        playerList = mutableListOf(Player(22, "Jordan", 1500))
-        testELO()
-    }
+    fun updateEloOfMatch(match: Match) {
+        match.teamOne.eloRating = getTeamEloRating(match.teamOne)
+        match.teamTwo.eloRating = getTeamEloRating(match.teamTwo)
 
-    fun testELO() {
-        val match = createTestMatch()
         val winningTeam = getWinningTeam(match)
         val losingTeam = getLosingTeam(match)
+
         teamOneWinProbability = getTeamOneWinProbability(match.teamOne.eloRating, match.teamTwo.eloRating)
         val marginOfVictoryMultiplier = getMarginOfVictoryModifier(abs(match.scoreOne - match.scoreTwo), winningTeam.eloRating, losingTeam.eloRating)
         ratingDelta = getRatingDelta(marginOfVictoryMultiplier).roundToInt()
 
-        updateELO(winningTeam, losingTeam)
+        updateTeamELO(winningTeam, losingTeam)
     }
 
-    private fun createTestMatch(): Match {
-        val teamOne = Team(1)
-        val teamTwo = Team(2)
-
-        teamOne.eloRating = 1400
-        teamTwo.eloRating = 1600
-
-        val scoreOne = 19
-        val scoreTwo = 21
-
-        return Match(1, teamOne, scoreOne, teamTwo, scoreTwo)
+    private fun getTeamEloRating(team: Team) : Int {
+        return (team.playerOne.eloRating + team.playerTwo.eloRating) / 2
     }
 
     private fun getExpectedWinner(match: Match): Int {
@@ -71,17 +60,22 @@ class EloController : Controller() {
         }
     }
 
-    private fun updateELO(winningTeam: Team, losingTeam: Team) {
-        winningTeam.eloRating += ratingDelta
-        losingTeam.eloRating -= ratingDelta
-    }
-
     private fun getRatingDelta(marginOfVictoryMultiplier: Double): Double {
         return RATING_FACTOR_K * teamOneWinProbability * marginOfVictoryMultiplier
     }
 
     private fun getMarginOfVictoryModifier(pointDifferential: Int, winningTeamElo: Int, losingTeamElo: Int): Double {
         //Margin of Victory Multiplier = LN(ABS(PD)+1) * (2.2/((ELOW-ELOL)*.001+2.2))
-        return kotlin.math.ln(abs(pointDifferential.toDouble()) + 2) * (2.2 / ((winningTeamElo - losingTeamElo) * .001 + 2.2))
+        return kotlin.math.ln(abs(pointDifferential.toDouble()) + 1) * (2.2 / ((winningTeamElo - losingTeamElo) * .001 + 2.2))
+    }
+
+    private fun updateTeamELO(winningTeam: Team, losingTeam: Team) {
+        updatePlayerElo(winningTeam, ratingDelta)
+        updatePlayerElo(losingTeam, -ratingDelta)
+    }
+
+    private fun updatePlayerElo(team: Team, ratingDelta: Int) {
+        team.playerOne.eloRating += ratingDelta
+        team.playerTwo.eloRating += ratingDelta
     }
 }
