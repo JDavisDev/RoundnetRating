@@ -10,8 +10,9 @@ import kotlin.math.roundToInt
 class EloController : Controller() {
 
     val RATING_FACTOR_K = 32
-    var teamOneWinProbability: Double = 0.0
     var ratingDelta = 0
+    var teamOneExpectedWinRate: Double = 0.5
+
     lateinit var playerList: MutableList<Player>
 
     fun updateEloOfMatch(match: Match) {
@@ -21,8 +22,8 @@ class EloController : Controller() {
         val winningTeam = getWinningTeam(match)
         val losingTeam = getLosingTeam(match)
 
-        teamOneWinProbability = getTeamOneWinProbability(match.teamOne.eloRating, match.teamTwo.eloRating)
-        val marginOfVictoryMultiplier = getMarginOfVictoryModifier(abs(match.scoreOne - match.scoreTwo), winningTeam.eloRating, losingTeam.eloRating)
+        setTeamExpectedWinRate(match.teamOne.eloRating, match.teamTwo.eloRating)
+        val marginOfVictoryMultiplier = getMOVOne(abs(match.scoreOne - match.scoreTwo), winningTeam.eloRating, losingTeam.eloRating)
         ratingDelta = getRatingDelta(marginOfVictoryMultiplier).roundToInt()
 
         updateTeamELO(winningTeam, losingTeam)
@@ -40,10 +41,11 @@ class EloController : Controller() {
         }
     }
 
-    private fun getTeamOneWinProbability(teamOneRating: Int, teamTwoRating: Int): Double {
-        // Probability of teamOne winning = 1 / (10^(-ELODIFF/400) + 1)
-        //return (teamOneRating.toDouble() / (teamOneRating + teamTwoRating).toDouble())
-        return 1 / (Math.pow(10.0, -(teamOneRating.toDouble() - teamTwoRating.toDouble()) / 400) + 1)
+    private fun setTeamExpectedWinRate(teamOneRating: Int, teamTwoRating: Int) {
+        // Probability of teamOne winning = 0...1 / (10^(ELODIFF/400) + 1)
+        val teamOneVal = Math.pow(10.0, (teamOneRating.toDouble()) / 400.0)
+        val teamTwoVal = Math.pow(10.0, (teamTwoRating.toDouble()) / 400.0)
+        teamOneExpectedWinRate = teamOneVal / (teamOneVal + teamTwoVal)
     }
 
     private fun getWinningTeam(match: Match): Team {
@@ -61,12 +63,17 @@ class EloController : Controller() {
     }
 
     private fun getRatingDelta(marginOfVictoryMultiplier: Double): Double {
-        return RATING_FACTOR_K * teamOneWinProbability * marginOfVictoryMultiplier
+        return RATING_FACTOR_K * (1 - teamOneExpectedWinRate) * marginOfVictoryMultiplier
     }
 
-    private fun getMarginOfVictoryModifier(pointDifferential: Int, winningTeamElo: Int, losingTeamElo: Int): Double {
+    private fun getMOVOne(pointDifferential: Int, winningTeamElo: Int, losingTeamElo: Int): Double {
         //Margin of Victory Multiplier = LN(ABS(PD)+1) * (2.2/((ELOW-ELOL)*.001+2.2))
-        return kotlin.math.ln(abs(pointDifferential.toDouble()) + 1) * (2.2 / ((winningTeamElo - losingTeamElo) * .001 + 2.2))
+        return kotlin.math.ln(abs(pointDifferential) + 1.0) * (2.2 / ((winningTeamElo - losingTeamElo) * .001 + 2.2))
+    }
+
+    private fun getMOVTwo(pointDifferential: Int, winningTeamElo: Int, losingTeamElo: Int): Double {
+        val sqr = Math.pow(abs(pointDifferential) + 6.0, 0.8)
+        return sqr / (7.5 + (.006*(winningTeamElo - losingTeamElo)))
     }
 
     private fun updateTeamELO(winningTeam: Team, losingTeam: Team) {

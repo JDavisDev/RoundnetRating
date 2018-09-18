@@ -7,9 +7,9 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import main.model.Match
 import main.model.Player
+import main.model.PlayerModel
 import main.model.Team
 import tornadofx.*
-import java.util.*
 
 class MainView : View("Hello TornadoFX") {
 
@@ -50,14 +50,17 @@ class MainView : View("Hello TornadoFX") {
         form {
             fieldset {
                 field("Player One") {
-
-                    combobox<Player> {
-                        items = teamList
+                    combobox(PlayerModel(teamList[0]).itemProperty, teamList) {
+                        cellFormat {
+                            text = it.name
+                        }
                     }
                 }
                 field("Player Two") {
-                    combobox<Player> {
-                        items = teamList
+                    combobox(PlayerModel(teamList[1]).itemProperty, teamList) {
+                        cellFormat {
+                            text = it.name
+                        }
                     }
                 }
 
@@ -66,13 +69,17 @@ class MainView : View("Hello TornadoFX") {
                 }
 
                 field("Player Three") {
-                    combobox<Player> {
-                        items = teamList
+                    combobox(PlayerModel(teamList[2]).itemProperty, teamList) {
+                        cellFormat {
+                            text = it.name
+                        }
                     }
                 }
                 field("Player Four") {
-                    combobox<Player> {
-                        items = teamList
+                    combobox(PlayerModel(teamList[3]).itemProperty, teamList) {
+                        cellFormat {
+                            text = it.name
+                        }
                     }
                 }
 
@@ -84,6 +91,7 @@ class MainView : View("Hello TornadoFX") {
                 button("Save Game") {
                     useMaxWidth = true
                     action {
+                        playerController.getPlayersFromDb()
                         val teamOne = Team(1)
                         teamOne.playerOne = teamList[0]
                         teamOne.playerTwo = teamList[1]

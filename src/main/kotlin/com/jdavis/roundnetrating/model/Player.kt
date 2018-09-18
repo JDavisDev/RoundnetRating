@@ -12,3 +12,9 @@ class Player(id: Int, name: String, eloRating: Int) {
     var eloRating by property(eloRating)
     fun eloRatingProperty() = getProperty(Player::eloRating)
 }
+
+class PlayerModel(player: Player? = null) : ItemViewModel<Player>(player) {
+    val id = bind(Player::idProperty)
+    val name = bind(Player::nameProperty)
+    val eloRating = bind(Player::eloRatingProperty)
+}
