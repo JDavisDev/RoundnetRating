@@ -1,16 +1,17 @@
-package com.jdavis.roundnetrating.view
+package com.jdavis.roundnetrating.mainview
 
-import com.jdavis.roundnetrating.controller.DatabaseController
-import com.jdavis.roundnetrating.controller.EloController
-import com.jdavis.roundnetrating.controller.PlayerController
+import com.jdavis.roundnetrating.elo.controller.DatabaseController
+import com.jdavis.roundnetrating.elo.controller.EloController
+import com.jdavis.roundnetrating.elo.controller.PlayerController
+import com.jdavis.roundnetrating.model.Player
+import com.jdavis.roundnetrating.model.Team
+import com.jdavis.roundnetrating.swiss.controller.SwissScheduleController
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
-import main.model.Match
-import main.model.Player
-import main.model.Team
+import main.model.Game
 import tornadofx.*
 
 class MainView : View("Hello TornadoFX") {
@@ -26,13 +27,16 @@ class MainView : View("Hello TornadoFX") {
     private val playerThreeProperty = SimpleObjectProperty<Player>()
     private val playerFourProperty = SimpleObjectProperty<Player>()
 
-    lateinit var selectedPlayerOne: Player
-    lateinit var selectedPlayerTwo: Player
-    lateinit var selectedPlayerThree: Player
-    lateinit var selectedPlayerFour: Player
+    private lateinit var selectedPlayerOne: Player
+    private lateinit var selectedPlayerTwo: Player
+    private lateinit var selectedPlayerThree: Player
+    private lateinit var selectedPlayerFour: Player
     private var playerList: ObservableList<Player>
 
     init {
+        val swissTest = SwissScheduleController()
+        swissTest.generateMatchups()
+
         dbController.getAllPlayersFromDb()
         playerList = FXCollections.observableList(dbController.playerList)
     }
@@ -137,7 +141,7 @@ class MainView : View("Hello TornadoFX") {
             teamTwo.playerOne = selectedPlayerThree
             teamTwo.playerTwo = selectedPlayerFour
             val scoreTwo = teamTwoScoreInput.value
-            val match = Match(1, teamOne, scoreOne, teamTwo, scoreTwo)
+            val match = Game(1, teamOne, scoreOne, teamTwo, scoreTwo)
             eloController.updateEloOfMatch(match)
             dbController.writeAllPlayersToDb()
         } else {

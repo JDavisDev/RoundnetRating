@@ -1,15 +1,15 @@
-package main.model
+package com.jdavis.roundnetrating.model
 
 import tornadofx.*
 
 class Player(id: Int, name: String, eloRating: Int) {
-    var id by property(id)
+    var id: Int by property(id)
     fun idProperty() = getProperty(Player::id)
 
-    var name by property(name)
+    var name: String by property(name)
     fun nameProperty() = getProperty(Player::name)
 
-    var eloRating by property(eloRating)
+    var eloRating: Int by property(eloRating)
     fun eloRatingProperty() = getProperty(Player::eloRating)
 }
 

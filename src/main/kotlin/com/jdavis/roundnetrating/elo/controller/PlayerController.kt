@@ -1,4 +1,4 @@
-package com.jdavis.roundnetrating.controller
+package com.jdavis.roundnetrating.elo.controller
 
 import tornadofx.*
 
