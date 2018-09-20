@@ -1,7 +1,6 @@
 package com.jdavis.roundnetrating.controller
 
 import main.model.Match
-import main.model.Player
 import main.model.Team
 import tornadofx.*
 import java.lang.Math.abs
@@ -12,8 +11,6 @@ class EloController : Controller() {
     val RATING_FACTOR_K = 32
     var ratingDelta = 0
     var teamOneExpectedWinRate: Double = 0.5
-
-    lateinit var playerList: MutableList<Player>
 
     fun updateEloOfMatch(match: Match) {
         match.teamOne.eloRating = getTeamEloRating(match.teamOne)
