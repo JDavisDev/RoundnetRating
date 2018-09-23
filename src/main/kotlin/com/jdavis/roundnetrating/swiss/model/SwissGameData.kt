@@ -15,7 +15,12 @@ class SwissGameData {
     }
 
     public fun getGamesInRound(round: Int): MutableList<Game> {
-        return gameList.getValue(round)
+        if (gameList.containsKey(round)) {
+            return gameList.getValue(round)
+        } else {
+            gameList[round] = mutableListOf()
+            return mutableListOf()
+        }
     }
 
     public fun getAllGames(): Collection<MutableList<Game>> {

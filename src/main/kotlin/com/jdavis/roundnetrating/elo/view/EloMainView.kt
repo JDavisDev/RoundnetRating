@@ -6,7 +6,6 @@ import com.jdavis.roundnetrating.elo.controller.PlayerController
 import com.jdavis.roundnetrating.mainview.MainView
 import com.jdavis.roundnetrating.model.Player
 import com.jdavis.roundnetrating.model.Team
-import com.jdavis.roundnetrating.swiss.controller.SwissScheduleController
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -34,9 +33,6 @@ class EloMainView : View("ELO View") {
     private var playerList: ObservableList<Player>
 
     init {
-        val swissTest = SwissScheduleController()
-        swissTest.generateMatchups()
-
         dbController.getAllPlayersFromDb()
         playerList = FXCollections.observableList(dbController.playerList)
     }

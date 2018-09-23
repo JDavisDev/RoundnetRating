@@ -3,8 +3,9 @@ package com.jdavis.roundnetrating.swiss.controller
 import com.jdavis.roundnetrating.model.Team
 import com.jdavis.roundnetrating.swiss.model.SwissGameData
 import main.model.Game
+import tornadofx.*
 
-class SwissScheduleController {
+class SwissScheduleController : Controller() {
 
     var swissGameData = SwissGameData()
     var floatingTeamsList = mutableListOf<Team>()

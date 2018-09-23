@@ -2,16 +2,11 @@ package com.jdavis.roundnetrating.model
 
 import tornadofx.*
 
-class Team(id: Int = 0, name: String = id.toString(), eloRating: Int = 1500) {
-//    var name = "Team" + id.toString()
-//    var eloRating = 1500
-//    lateinit var playerOne: Player
-//    lateinit var playerTwo: Player
-//    var wins = 0
-//    var losses = 0
-//    var swissPoints = 0
-//    var pointDiff = 0
-//    var hadBye = false
+class Team(id: Int = 0, name: String = id.toString(), eloRating: Int = 1500,
+           playerOne: Player = Player(1, "one", 1500),
+           playerTwo: Player = Player(2, "two", 1500),
+           wins: Int = 0, losses: Int = 0, swissPoints: Int = 0, pointDiff: Int = 0,
+           hadBye: Boolean = false) {
 
     var id: Int by property(id)
     fun idProperty() = getProperty(Team::id)
