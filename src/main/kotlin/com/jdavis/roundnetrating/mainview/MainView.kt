@@ -144,12 +144,26 @@ class MainView : View("Hello TornadoFX") {
             val match = Game(1, teamOne, scoreOne, teamTwo, scoreTwo)
             eloController.updateEloOfMatch(match)
             dbController.writeAllPlayersToDb()
+
+            teamOneScoreInput.set(21)
+            teamTwoScoreInput.set(0)
         } else {
             // show error dialog or something
         }
     }
 
     private fun isGameValid(): Boolean {
-        return true
+        if (teamOneScoreInput.value != teamTwoScoreInput.value) {
+            if (selectedPlayerOne != selectedPlayerTwo && selectedPlayerOne != selectedPlayerThree &&
+                    selectedPlayerOne != selectedPlayerFour) {
+                if (selectedPlayerTwo != selectedPlayerThree && selectedPlayerTwo != selectedPlayerFour) {
+                    if (selectedPlayerThree != selectedPlayerFour) {
+                        return true
+                    }
+                }
+            }
+        }
+
+        return false
     }
 }

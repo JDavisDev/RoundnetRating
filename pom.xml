@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
-    <artifactId>tornadofx-maven-project</artifactId>
+    <groupId>com.jdavisdev</groupId>
+    <artifactId>Roundnet-Rating</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
@@ -14,6 +14,13 @@
         <tornadofx.version>1.7.17</tornadofx.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>exposed</id>
+            <name>exposed</name>
+            <url>https://dl.bintray.com/kotlin/exposed</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
@@ -22,16 +29,6 @@
             <artifactId>h2</artifactId>
             <version>1.4.197</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>2.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.davidmoten</groupId>
-            <artifactId>rxjava-jdbc</artifactId>
-            <version>0.7.11</version>
         </dependency>
         <dependency>
             <groupId>no.tornado</groupId>
@@ -45,19 +42,9 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
+            <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>3.17</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>3.17</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -75,6 +62,11 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.2.0</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.exposed</groupId>
+            <artifactId>exposed</artifactId>
+            <version>0.10.5</version>
         </dependency>
     </dependencies>
 

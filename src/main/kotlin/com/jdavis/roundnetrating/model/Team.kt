@@ -9,4 +9,5 @@ data class Team(val id: Int) {
     var losses = 0
     var swissPoints = 0
     var pointDiff = 0
+    var hadBye = false
 }

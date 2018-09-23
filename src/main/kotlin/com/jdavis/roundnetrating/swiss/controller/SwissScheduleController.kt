@@ -1,32 +1,37 @@
 package com.jdavis.roundnetrating.swiss.controller
 
 import com.jdavis.roundnetrating.model.Team
+import com.jdavis.roundnetrating.swiss.model.SwissGameData
 import main.model.Game
 
 class SwissScheduleController {
 
-    var roundGameList: MutableList<Game> = mutableListOf()
-    var teamList: MutableList<Team> = setupMockTeamList()
+    var swissGameData = SwissGameData()
+    var floatingTeamsList = mutableListOf<Team>()
+    var teamList = setupMockTeamList()
     var round: Int = 1
 
     fun generateMatchups() {
-        sortTeams()
-        createRoundOneMatchups()
+        sortTeams(teamList)
         beginSim()
     }
 
-    fun setupMockTeamList(): MutableList<Team> {
+    private fun setupMockTeamList(): MutableList<Team> {
         // change this later to get teams from db
         var teamList: MutableList<Team> = mutableListOf()
 
         var teamOne = Team(1)
-        teamOne.swissPoints = 3
+        teamOne.swissPoints = 1
 
         var teamTwo = Team(2)
-        teamTwo.swissPoints = 2
+        teamTwo.swissPoints = 1
+
+        var twoHalf = Team(5)
+        twoHalf.swissPoints = 1
+        twoHalf.eloRating = 1800
 
         var teamThree = Team(3)
-        teamThree.swissPoints = 3
+        teamThree.swissPoints = 0
         teamThree.eloRating = 1800
 
         var teamFour = Team(4)
@@ -37,68 +42,109 @@ class SwissScheduleController {
         teamList.add(teamTwo)
         teamList.add(teamThree)
         teamList.add(teamFour)
+        teamList.add(twoHalf)
 
         return teamList
     }
 
-    fun sortTeams() {
-        teamList.sortByDescending {
+    private fun sortTeams(list: MutableList<Team>) {
+        list.sortByDescending {
             it.swissPoints
         }
     }
 
-    private fun createRoundOneMatchups() {
-        for (index in 0 until teamList.size / 2) {
-            val id = Integer.parseInt(round.toString() + (index + 1).toString())
-            val game = Game(id, teamList[index], 0, teamList[teamList.size / 2 + index], 0)
-            roundGameList.add(game)
-        }
-    }
-
     private fun beginSim() {
-        teamList[0].swissPoints++
-        teamList[1].swissPoints += 2
-        createRoundOfMatchups()
+        updateTeamPoints()
+        groupTeamsBySwissPoints()
+        resetValues()
+        round += 1
     }
 
-    private fun createRoundOfMatchups() {
-        var roundTeamList = teamList
+    private fun resetValues() {
+        floatingTeamsList.clear()
 
-        for (index in 1..teamList.size / 2) {
-            val teamOne = getTeamOne(roundTeamList)
-            val teamTwo = getTeamTwo(roundTeamList, teamOne)
+    }
 
-            if (teamTwo != null) {
-                val id = Integer.parseInt(round.toString() + index.toString())
-                val game = Game(id, teamOne, 0, teamTwo, 0)
-                roundGameList.add(game)
-                roundTeamList.remove(teamOne)
-                roundTeamList.remove(teamTwo)
-            } else {
-                continue
+    private fun updateTeamPoints() {
+    }
+
+    /**
+     * This method essentially gathers all the players with the same swiss score into one list,
+     * then creates matchups from that list
+     * Need to handle odd numbers and check for not perfect match ups.
+     * i guess if the create matchups method gets an odd, one team is set aside to match up with another
+     */
+    private fun groupTeamsBySwissPoints() {
+        val roundTeamList = teamList.toMutableList()
+
+        // odd number?
+        // start at the back and give the worst team a bye who has yet to have one
+        if (roundTeamList.size % 2 != 0) {
+            for (index in roundTeamList.size downTo 0) {
+                if (roundTeamList[index - 1].hadBye) {
+                    continue
+                } else {
+                    giveTeamBye(roundTeamList[roundTeamList.size - 1])
+                    roundTeamList.removeAt(roundTeamList.size - 1)
+                    break
+                }
             }
+
         }
-    }
 
-    private fun getTeamOne(roundTeamList: MutableList<Team>): Team {
-        return roundTeamList[0]
-    }
+        for (pointValue in round downTo -1) {
+            val tempList = mutableListOf<Team>()
 
-    private fun getTeamTwo(roundTeamList: MutableList<Team>, opponent: Team): Team? {
-        var team = Team(-1)
-
-        for (index in 0 until roundTeamList.size - 1) {
-            if (roundTeamList[index] != opponent &&
-                    roundTeamList[index].swissPoints == opponent.swissPoints) {
-                team = roundTeamList[index]
+            for (team in roundTeamList) {
+                if (team.swissPoints == pointValue) {
+                    tempList.add(team)
+                }
             }
+
+            createRoundMatchups(round, tempList)
         }
 
-        // team wasn't assigned yet, meaning no team is tied. pick someone else?
-        if (team.id == -1) {
-            return null
+        createMatchupsFromFloatingTeams()
+    }
+
+    private fun createRoundMatchups(round: Int, list: MutableList<Team>) {
+        // odd number?
+        if (list.size % 2 != 0 || list.size == 1) {
+            // add the middle most team to be the floater
+            // this way, top and bottom seeds of this list play each other
+            val middleTeam = list[list.size / 2]
+            floatingTeamsList.add(middleTeam)
+            list.remove(middleTeam)
         }
 
-        return team
+        for (index in 0 until list.size / 2) {
+            val id = Integer.parseInt(round.toString() + (index + 1).toString())
+            val teamOne = list[index]
+            val teamTwo = list[list.size / 2 + index]
+
+            swissGameData.insertGame(round, createNewGame(id, teamOne, teamTwo))
+        }
+    }
+
+    // floating team list should NEVER be odd..
+    private fun createMatchupsFromFloatingTeams() {
+        sortTeams(floatingTeamsList)
+
+        for (index in 0 until floatingTeamsList.size - 1) {
+            val teamOne = floatingTeamsList[index]
+            val teamTwo = floatingTeamsList[index + 1]
+            val id = Integer.parseInt(round.toString() + (index + 1).toString() + "0")
+
+            swissGameData.insertGame(round, createNewGame(id, teamOne, teamTwo))
+        }
+    }
+
+    private fun createNewGame(id: Int, teamOne: Team, teamTwo: Team): Game {
+        return Game(id, teamOne, 0, teamTwo, 0)
+    }
+
+    private fun giveTeamBye(team: Team) {
+        team.hadBye = true
+        team.swissPoints += 1
     }
 }
