@@ -1,6 +1,7 @@
 package com.jdavis.roundnetrating.elo.controller
 
 import com.jdavis.roundnetrating.model.Player
+import com.jdavis.roundnetrating.model.Team
 import tornadofx.*
 import java.io.File
 
@@ -10,6 +11,7 @@ class DatabaseController : Controller() {
     var dbFile: File = File(filename)
 
     public var playerList = mutableListOf<Player>()
+    public var teamList = mutableListOf<Team>()
 
     init {
 

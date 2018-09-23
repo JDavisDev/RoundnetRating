@@ -25,12 +25,16 @@ class DatabaseDAO {
         }
     }
 
-    object Player : Table() {
+    public fun insertTeam() {
+
+    }
+
+    private object Player : Table() {
         val id = integer("id").autoIncrement().primaryKey()
         val name = varchar("name", 25)
     }
 
-    object Team : Table() {
+    private object Team : Table() {
         val id = integer("id").autoIncrement().primaryKey()
         val name = varchar("name", 40)
         val wins = integer("wins")
