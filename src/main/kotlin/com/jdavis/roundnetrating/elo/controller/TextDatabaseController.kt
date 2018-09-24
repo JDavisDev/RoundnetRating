@@ -5,7 +5,7 @@ import com.jdavis.roundnetrating.model.Team
 import tornadofx.*
 import java.io.File
 
-class DatabaseController : Controller() {
+class TextDatabaseController : Controller() {
 
     val filename = "./PlayerDatabase.txt"
     var dbFile: File = File(filename)

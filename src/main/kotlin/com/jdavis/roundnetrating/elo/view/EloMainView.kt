@@ -1,8 +1,8 @@
 package com.jdavis.roundnetrating.elo.view
 
-import com.jdavis.roundnetrating.elo.controller.DatabaseController
 import com.jdavis.roundnetrating.elo.controller.EloController
 import com.jdavis.roundnetrating.elo.controller.PlayerController
+import com.jdavis.roundnetrating.elo.controller.TextDatabaseController
 import com.jdavis.roundnetrating.mainview.MainView
 import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Player
@@ -14,8 +14,8 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import tornadofx.*
 
-class EloMainView : View("ELO View") {
-    private val dbController: DatabaseController by inject()
+class EloMainView : View("ELO") {
+    private val dbController: TextDatabaseController by inject()
     private val eloController: EloController by inject()
     private val playerController: PlayerController by inject()
     private val newPlayerNameInput = SimpleStringProperty()

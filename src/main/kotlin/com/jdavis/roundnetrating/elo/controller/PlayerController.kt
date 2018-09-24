@@ -4,7 +4,7 @@ import tornadofx.*
 
 class PlayerController : Controller() {
 
-    private var dbController: DatabaseController = DatabaseController()
+    private var dbController: TextDatabaseController = TextDatabaseController()
 
     fun addPlayer(name: String) {
         // write player to db

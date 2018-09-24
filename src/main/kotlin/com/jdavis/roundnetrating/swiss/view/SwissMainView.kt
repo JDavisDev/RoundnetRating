@@ -1,7 +1,7 @@
 package com.jdavis.roundnetrating.swiss.view
 
 import com.jdavis.roundnetrating.DatabaseDAO
-import com.jdavis.roundnetrating.elo.controller.DatabaseController
+import com.jdavis.roundnetrating.elo.controller.TextDatabaseController
 import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
 import com.jdavis.roundnetrating.swiss.controller.SwissGameController
@@ -23,41 +23,53 @@ class SwissMainView : View("Swiss") {
         tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
 
         tab("Teams") {
-            add<TeamsTab>()
+            add<StandingsTab>()
         }
         tab("Schedule") {
             add<ScheduleTab>()
         }
-        tab("Standings") {
-            add<StandingsTab>()
-        }
     }
 }
 
-class TeamsTab : View() {
+class StandingsTab : View() {
     private val dbController: DatabaseDAO by inject()
     private var teamList: ObservableList<Team>
     private val newTeamInput = SimpleStringProperty()
 
     init {
-        teamList = observableList() //FXCollections.observableList(dbController.getTeams())
+        teamList = FXCollections.observableList(dbController.teamList)
     }
 
     override val root =
             form {
                 fieldset {
-                    field("New Player: ") {
+                    field("New Team: ") {
                         textfield(newTeamInput)
                     }
 
-                    button("Add Player") {
+                    button("Add Team") {
                         action {
                             if (newTeamInput.value != null && newTeamInput.value.isNotEmpty()) {
                                 dbController.insertTeam(newTeamInput.value)
-                                // teamList = FXCollections.observableList(dbController.getTeams())
+                                teamList.add(
+                                        Team(teamList.size + 1, newTeamInput.value, 1500,
+                                                null, null, 0, 0,
+                                                0, 0, false))
                             }
                             newTeamInput.value = ""
                         }
+                    }
+
+                    tableview(teamList) {
+                        column("ID", Team::idProperty)
+                        column("Name", Team::nameProperty)
+                        column("Wins", Team::winsProperty)
+                        column("Losses", Team::lossesProperty)
+                        column("Points", Team::swissPointsProperty)
+                        column("Point Differential", Team::pointDiffProperty)
+                        column("ELO Rating", Team::eloRatingProperty)
+                        column("Bye", Team::hadByeProperty)
+                        columnResizePolicy = SmartResize.POLICY
                     }
                 }
             }
@@ -66,9 +78,9 @@ class TeamsTab : View() {
 class ScheduleTab : View() {
 
     private val swissGameController: SwissGameController by inject()
-    private val dbController: DatabaseController by inject()
+    private val dbController: TextDatabaseController by inject()
     private val gameList: ObservableList<Game>
-    private val swissTest: SwissScheduleController by inject()
+    private val swissScheduleController: SwissScheduleController by inject()
 
     private val teamOneScoreInput = SimpleIntegerProperty()
     private val teamTwoScoreInput = SimpleIntegerProperty()
@@ -76,14 +88,19 @@ class ScheduleTab : View() {
     private val teamTwoProperty = SimpleObjectProperty<Team>()
 
     init {
-        swissTest.generateMatchups()
-        gameList = FXCollections.observableList(swissTest.swissGameData.getGamesInRound(1))
+        gameList = FXCollections.observableList(swissScheduleController.swissGameData.getGamesInRound(1))
     }
 
     override val root = form {
         fieldset {
 
-            for (round in swissTest.swissGameData.gameList.keys) {
+            button("Generate Round") {
+                swissScheduleController.generateMatchups()
+            }
+
+
+            // swiss rounds
+            for (round in swissScheduleController.swissGameData.gameList.keys) {
                 label("Round " + round.toString())
 
                 hbox(20) {
@@ -113,27 +130,5 @@ class ScheduleTab : View() {
 
     private fun openGameInputFragment(game: Game) {
         find<SwissGameInputFragment>(SwissGameInputFragment::game to game).openModal(stageStyle = StageStyle.DECORATED)
-    }
-}
-
-class StandingsTab : View() {
-
-    private val dbController: DatabaseDAO by inject()
-    var teamList: ObservableList<Team>
-
-    init {
-        teamList = observableList() //FXCollections.observableList(dbController.getTeams())
-    }
-
-    override val root = form {
-        tableview(teamList) {
-            column("Name", Team::nameProperty)
-            column("Wins", Team::winsProperty)
-            column("Losses", Team::lossesProperty)
-            column("Points", Team::swissPointsProperty)
-            column("Point Differential", Team::pointDiffProperty)
-            column("ELO Rating", Team::eloRatingProperty)
-            columnResizePolicy = SmartResize.POLICY
-        }
     }
 }

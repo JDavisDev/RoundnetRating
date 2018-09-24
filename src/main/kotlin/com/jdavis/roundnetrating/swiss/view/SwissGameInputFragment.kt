@@ -1,10 +1,12 @@
 package com.jdavis.roundnetrating.swiss.view
 
+import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.model.Game
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 
 class SwissGameInputFragment : Fragment("Submit Game") {
+    private val dbController: DatabaseDAO by inject()
     val game: Game by param()
 
     override val root = fieldset {
@@ -33,6 +35,7 @@ class SwissGameInputFragment : Fragment("Submit Game") {
     }
 
     private fun submitGame() {
+        //dbController.insertGame()
         close()
     }
 }

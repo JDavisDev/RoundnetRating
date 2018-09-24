@@ -147,4 +147,9 @@ class SwissScheduleController : Controller() {
         team.hadBye = true
         team.swissPoints += 1
     }
+
+    private fun isMatchupUnique(): Boolean {
+        // check if they've played each other
+        return true
+    }
 }
