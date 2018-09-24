@@ -1,6 +1,6 @@
 package com.jdavis.roundnetrating.swiss.model
 
-import main.model.Game
+import com.jdavis.roundnetrating.model.Game
 
 class SwissGameData {
     var gameList: HashMap<Int, MutableList<Game>> = hashMapOf()

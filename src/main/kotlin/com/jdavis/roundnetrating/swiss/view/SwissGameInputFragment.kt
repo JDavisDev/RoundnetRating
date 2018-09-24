@@ -1,7 +1,7 @@
 package com.jdavis.roundnetrating.swiss.view
 
+import com.jdavis.roundnetrating.model.Game
 import javafx.scene.text.TextAlignment
-import main.model.Game
 import tornadofx.*
 
 class SwissGameInputFragment : Fragment("Submit Game") {
@@ -16,12 +16,12 @@ class SwissGameInputFragment : Fragment("Submit Game") {
 
         hbox {
             label(game.teamOne.nameProperty().value)
-            textfield(game.teamOne.nameProperty().value + " Score")
+            textfield("0")
         }
 
         hbox {
             label(game.teamTwo.nameProperty().value)
-            textfield(game.teamTwo.nameProperty().value + " Score")
+            textfield("0")
         }
 
         button {

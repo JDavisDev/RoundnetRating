@@ -1,16 +1,19 @@
 package com.jdavis.roundnetrating.swiss.view
 
+import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.elo.controller.DatabaseController
+import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
 import com.jdavis.roundnetrating.swiss.controller.SwissGameController
 import com.jdavis.roundnetrating.swiss.controller.SwissScheduleController
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.scene.control.TabPane
+import javafx.scene.paint.Color
 import javafx.stage.StageStyle
-import main.model.Game
 import tornadofx.*
 
 class SwissMainView : View("Swiss") {
@@ -20,22 +23,44 @@ class SwissMainView : View("Swiss") {
         tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
 
         tab("Teams") {
-            vbox {
-                button("Button 1")
-                button("Button 2")
-            }
+            add<TeamsTab>()
         }
         tab("Schedule") {
             add<ScheduleTab>()
         }
         tab("Standings") {
-            //            tableview(teamList) {
-//                column("ID", Player::idProperty)
-//                column("Name", Player::nameProperty)
-//                column("ELO Rating", Player::eloRatingProperty)
-//            }
+            add<StandingsTab>()
         }
     }
+}
+
+class TeamsTab : View() {
+    private val dbController: DatabaseDAO by inject()
+    private var teamList: ObservableList<Team>
+    private val newTeamInput = SimpleStringProperty()
+
+    init {
+        teamList = observableList() //FXCollections.observableList(dbController.getTeams())
+    }
+
+    override val root =
+            form {
+                fieldset {
+                    field("New Player: ") {
+                        textfield(newTeamInput)
+                    }
+
+                    button("Add Player") {
+                        action {
+                            if (newTeamInput.value != null && newTeamInput.value.isNotEmpty()) {
+                                dbController.insertTeam(newTeamInput.value)
+                                // teamList = FXCollections.observableList(dbController.getTeams())
+                            }
+                            newTeamInput.value = ""
+                        }
+                    }
+                }
+            }
 }
 
 class ScheduleTab : View() {
@@ -61,11 +86,24 @@ class ScheduleTab : View() {
             for (round in swissTest.swissGameData.gameList.keys) {
                 label("Round " + round.toString())
 
-                for (game in gameList) {
-                    button {
-                        text = game.teamOne.nameProperty().value + " vs. " + game.teamTwo.nameProperty().value
-                        action {
-                            openGameInputFragment(game)
+                hbox(20) {
+
+                    for (game in gameList) {
+                        if (game.round != 0 && game.round == round) {
+                            button {
+                                text = game.teamOne.nameProperty().value + " vs. " + game.teamTwo.nameProperty().value
+                                action {
+                                    openGameInputFragment(game)
+                                }
+
+                                paddingAll = 10.0
+
+                                if (game.isReported) {
+                                    style {
+                                        backgroundColor += Color.GREEN
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -75,5 +113,27 @@ class ScheduleTab : View() {
 
     private fun openGameInputFragment(game: Game) {
         find<SwissGameInputFragment>(SwissGameInputFragment::game to game).openModal(stageStyle = StageStyle.DECORATED)
+    }
+}
+
+class StandingsTab : View() {
+
+    private val dbController: DatabaseDAO by inject()
+    var teamList: ObservableList<Team>
+
+    init {
+        teamList = observableList() //FXCollections.observableList(dbController.getTeams())
+    }
+
+    override val root = form {
+        tableview(teamList) {
+            column("Name", Team::nameProperty)
+            column("Wins", Team::winsProperty)
+            column("Losses", Team::lossesProperty)
+            column("Points", Team::swissPointsProperty)
+            column("Point Differential", Team::pointDiffProperty)
+            column("ELO Rating", Team::eloRatingProperty)
+            columnResizePolicy = SmartResize.POLICY
+        }
     }
 }

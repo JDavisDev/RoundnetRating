@@ -4,6 +4,7 @@ import com.jdavis.roundnetrating.elo.controller.DatabaseController
 import com.jdavis.roundnetrating.elo.controller.EloController
 import com.jdavis.roundnetrating.elo.controller.PlayerController
 import com.jdavis.roundnetrating.mainview.MainView
+import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Player
 import com.jdavis.roundnetrating.model.Team
 import javafx.beans.property.SimpleIntegerProperty
@@ -11,7 +12,6 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
-import main.model.Game
 import tornadofx.*
 
 class EloMainView : View("ELO View") {
@@ -131,6 +131,7 @@ class EloMainView : View("ELO View") {
             column("ID", Player::idProperty)
             column("Name", Player::nameProperty)
             column("ELO Rating", Player::eloRatingProperty)
+            columnResizePolicy = SmartResize.POLICY
         }
     }
 
@@ -149,7 +150,7 @@ class EloMainView : View("ELO View") {
             teamTwo.playerTwo = selectedPlayerFour
 
             val scoreTwo = teamTwoScoreInput.value
-            val game = Game(1, teamOne, scoreOne, teamTwo, scoreTwo)
+            val game = Game(1, 1, teamOne, scoreOne, teamTwo, scoreTwo)
             eloController.updateEloOfMatch(game)
             dbController.writeAllPlayersToDb()
 

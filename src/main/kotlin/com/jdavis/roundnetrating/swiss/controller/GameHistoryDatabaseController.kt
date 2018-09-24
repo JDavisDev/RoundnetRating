@@ -1,6 +1,6 @@
 package com.jdavis.roundnetrating.swiss.controller
 
-import main.model.Game
+import com.jdavis.roundnetrating.model.Game
 import java.io.File
 
 class GameHistoryDatabaseController {
@@ -20,7 +20,7 @@ class GameHistoryDatabaseController {
 
     fun addGameToDb(game: Game) {
         // write player to db
-        val game = Game(game.id, game.teamOne, game.scoreOne, game.teamTwo, game.scoreTwo)
+        val game = Game(game.id, 1, game.teamOne, game.scoreOne, game.teamTwo, game.scoreTwo)
         gameDbFile.appendText((gameList.size + 1).toString() + "," + game.id.toString() + "," + "1500\n")
         gameList.add(game)
 

@@ -1,7 +1,7 @@
 package com.jdavis.roundnetrating.elo.controller
 
+import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
-import main.model.Game
 import tornadofx.*
 import java.lang.Math.abs
 import kotlin.math.roundToInt
