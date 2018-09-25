@@ -1,13 +1,10 @@
 package com.jdavis.roundnetrating.swiss.view
 
 import com.jdavis.roundnetrating.DatabaseDAO
-import com.jdavis.roundnetrating.elo.controller.TextDatabaseController
 import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
-import com.jdavis.roundnetrating.swiss.controller.SwissGameController
 import com.jdavis.roundnetrating.swiss.controller.SwissScheduleController
-import javafx.beans.property.SimpleIntegerProperty
-import javafx.beans.property.SimpleObjectProperty
+import com.jdavis.roundnetrating.swiss.model.SwissGameData
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -42,6 +39,11 @@ class StandingsTab : View() {
 
     override val root =
             form {
+                button("Back") {
+                    action {
+                        goHome()
+                    }
+                }
                 fieldset {
                     field("New Team: ") {
                         textfield(newTeamInput)
@@ -73,38 +75,40 @@ class StandingsTab : View() {
                     }
                 }
             }
+
+    private fun goHome() {
+        //close()
+        //replaceWith(MainView::class)
+    }
 }
 
 class ScheduleTab : View() {
-
-    private val swissGameController: SwissGameController by inject()
-    private val dbController: TextDatabaseController by inject()
+    private val swissGameData: SwissGameData by inject()
     private val gameList: ObservableList<Game>
     private val swissScheduleController: SwissScheduleController by inject()
 
-    private val teamOneScoreInput = SimpleIntegerProperty()
-    private val teamTwoScoreInput = SimpleIntegerProperty()
-    private val teamOneProperty = SimpleObjectProperty<Team>()
-    private val teamTwoProperty = SimpleObjectProperty<Team>()
-
     init {
-        gameList = FXCollections.observableList(swissScheduleController.swissGameData.getGamesInRound(1))
+        gameList = FXCollections.observableList(swissGameData.getGamesInRound(1))
     }
 
+    /**
+     * Let's use an observable list here that updates like the other views
+     * just an observable list of games and bind it to a property here or something?
+     */
     override val root = form {
         fieldset {
 
             button("Generate Round") {
-                swissScheduleController.generateMatchups()
+                action {
+                    swissScheduleController.generateMatchups()
+                }
             }
 
-
             // swiss rounds
-            for (round in swissScheduleController.swissGameData.gameList.keys) {
+            for (round in swissGameData.gameList.keys) {
                 label("Round " + round.toString())
 
                 hbox(20) {
-
                     for (game in gameList) {
                         if (game.round != 0 && game.round == round) {
                             button {

@@ -1,5 +1,6 @@
 package com.jdavis.roundnetrating.swiss.controller
 
+import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
 import com.jdavis.roundnetrating.swiss.model.SwissGameData
@@ -7,45 +8,20 @@ import tornadofx.*
 
 class SwissScheduleController : Controller() {
 
-    var swissGameData = SwissGameData()
+    private val swissGameData: SwissGameData by inject()
+
+    private val dbController: DatabaseDAO by inject()
+
     private var floatingTeamsList = mutableListOf<Team>()
-    private var teamList = setupMockTeamList()
+    private var teamList = dbController.getTeams()
     private var round: Int = 1
 
     fun generateMatchups() {
+        teamList = dbController.getTeams()
         sortTeams(teamList)
-        beginSim()
-    }
-
-    private fun setupMockTeamList(): MutableList<Team> {
-        // change this later to get teams from db
-        val teamList: MutableList<Team> = mutableListOf()
-
-        val teamOne = Team(1)
-        teamOne.swissPoints = 1
-
-        val teamTwo = Team(2)
-        teamTwo.swissPoints = 1
-
-        val twoHalf = Team(5)
-        twoHalf.swissPoints = 1
-        twoHalf.eloRating = 1800
-
-        val teamThree = Team(3)
-        teamThree.swissPoints = 0
-        teamThree.eloRating = 1800
-
-        val teamFour = Team(4)
-        teamThree.swissPoints = 0
-        teamThree.eloRating = 1800
-
-        teamList.add(teamOne)
-        teamList.add(teamTwo)
-        teamList.add(teamThree)
-        teamList.add(teamFour)
-        teamList.add(twoHalf)
-
-        return teamList
+        groupTeamsBySwissPoints()
+        resetValues()
+        round += 1
     }
 
     private fun sortTeams(list: MutableList<Team>) {
@@ -54,19 +30,8 @@ class SwissScheduleController : Controller() {
         }
     }
 
-    private fun beginSim() {
-        updateTeamPoints()
-        groupTeamsBySwissPoints()
-        resetValues()
-        round += 1
-    }
-
     private fun resetValues() {
         floatingTeamsList.clear()
-
-    }
-
-    private fun updateTeamPoints() {
     }
 
     /**
@@ -118,11 +83,11 @@ class SwissScheduleController : Controller() {
         }
 
         for (index in 0 until list.size / 2) {
-            val id = Integer.parseInt(round.toString() + (index + 1).toString())
             val teamOne = list[index]
             val teamTwo = list[list.size / 2 + index]
 
-            swissGameData.insertGame(round, createNewGame(id, round, teamOne, teamTwo))
+            swissGameData.insertGame(round, createNewGame(round, teamOne, teamTwo))
+            swissGameData.insertGameIntoDb(createNewGame(round, teamOne, teamTwo))
         }
     }
 
@@ -133,14 +98,14 @@ class SwissScheduleController : Controller() {
         for (index in 0 until floatingTeamsList.size - 1) {
             val teamOne = floatingTeamsList[index]
             val teamTwo = floatingTeamsList[index + 1]
-            val id = Integer.parseInt(round.toString() + (index + 1).toString() + "0")
 
-            swissGameData.insertGame(round, createNewGame(id, round, teamOne, teamTwo))
+            swissGameData.insertGame(round, createNewGame(round, teamOne, teamTwo))
+            swissGameData.insertGameIntoDb(createNewGame(round, teamOne, teamTwo))
         }
     }
 
-    private fun createNewGame(id: Int, round: Int, teamOne: Team, teamTwo: Team): Game {
-        return Game(id, round, teamOne, 0, teamTwo, 0)
+    private fun createNewGame(round: Int, teamOne: Team, teamTwo: Team): Game {
+        return Game(null, round, teamOne, 0, teamTwo, 0)
     }
 
     private fun giveTeamBye(team: Team) {

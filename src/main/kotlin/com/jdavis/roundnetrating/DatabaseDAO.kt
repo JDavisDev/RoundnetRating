@@ -1,5 +1,6 @@
 package com.jdavis.roundnetrating
 
+import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -62,11 +63,57 @@ class DatabaseDAO : Controller() {
     }
 
     fun insertGame(game: com.jdavis.roundnetrating.model.Game) {
-
+        transaction {
+            Game.insert {
+                it[teamOneName] = game.teamOne.name
+                it[teamTwoName] = game.teamTwo.name
+                it[isReported] = game.isReported
+                it[round] = game.round
+                it[scoreOne] = game.scoreOne
+                it[scoreTwo] = game.scoreTwo
+            }
+        }
     }
 
-    fun getAllGames() {
+    fun getAllGames(): MutableList<com.jdavis.roundnetrating.model.Game> {
+        val returnList = mutableListOf<com.jdavis.roundnetrating.model.Game>()
 
+        transaction {
+            val resultSet = Game.selectAll()
+            resultSet.forEach {
+                returnList.add(
+                        Game(it[Game.id],
+                                it[Game.round],
+                                getTeamByName(it[Game.teamOneName]),
+                                it[Game.scoreOne],
+                                getTeamByName(it[Game.teamTwoName]),
+                                it[Game.scoreTwo]))
+            }
+        }
+
+        return returnList
+    }
+
+    fun updateTeam(teamName: String, team: com.jdavis.roundnetrating.model.Team) {
+        Team.update({ Team.name eq teamName }) {
+            it[name] = teamName
+            it[eloRating] = team.eloRating
+            it[wins] = team.wins
+            it[losses] = team.losses
+            it[swissPoints] = team.swissPoints
+            it[hadBye] = team.hadBye
+            it[pointDiff] = team.pointDiff
+        }
+    }
+
+    private fun getTeamByName(name: String): com.jdavis.roundnetrating.model.Team {
+        for (team in teamList) {
+            if (team.name == name) {
+                return team
+            }
+        }
+
+        return Team()
     }
 
     private object Player : Table() {

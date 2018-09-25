@@ -150,7 +150,7 @@ class EloMainView : View("ELO") {
             teamTwo.playerTwo = selectedPlayerFour
 
             val scoreTwo = teamTwoScoreInput.value
-            val game = Game(1, 1, teamOne, scoreOne, teamTwo, scoreTwo)
+            val game = Game(null, 1, teamOne, scoreOne, teamTwo, scoreTwo)
             eloController.updateEloOfMatch(game)
             dbController.writeAllPlayersToDb()
 

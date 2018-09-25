@@ -4,7 +4,7 @@ import com.jdavis.roundnetrating.elo.view.EloMainView
 import com.jdavis.roundnetrating.swiss.view.SwissMainView
 import tornadofx.*
 
-class MainView : View("Hello TornadoFX") {
+class MainView : View("Roundnet Rating") {
 
     override val root =
             vbox {

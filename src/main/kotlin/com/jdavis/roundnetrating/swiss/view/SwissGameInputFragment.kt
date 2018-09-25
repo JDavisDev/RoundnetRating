@@ -1,12 +1,18 @@
 package com.jdavis.roundnetrating.swiss.view
 
-import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.model.Game
+import com.jdavis.roundnetrating.swiss.controller.SwissGameController
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 
 class SwissGameInputFragment : Fragment("Submit Game") {
-    private val dbController: DatabaseDAO by inject()
+    private val swissGameController: SwissGameController by inject()
+
+    private var scoreOneProperty = SimpleIntegerProperty()
+    private var scoreTwoProperty = SimpleIntegerProperty()
+
+    // param gets passed when we open this fragment
     val game: Game by param()
 
     override val root = fieldset {
@@ -18,12 +24,16 @@ class SwissGameInputFragment : Fragment("Submit Game") {
 
         hbox {
             label(game.teamOne.nameProperty().value)
-            textfield("0")
+            textfield(scoreOneProperty) {
+                text = "15"
+            }
         }
 
         hbox {
             label(game.teamTwo.nameProperty().value)
-            textfield("0")
+            textfield(scoreTwoProperty) {
+                text = "13"
+            }
         }
 
         button {
@@ -35,7 +45,16 @@ class SwissGameInputFragment : Fragment("Submit Game") {
     }
 
     private fun submitGame() {
-        //dbController.insertGame()
-        close()
+        if (isGameValid()) {
+            game.scoreOne = scoreOneProperty.value
+            game.scoreTwo = scoreTwoProperty.value
+            game.round = game.teamOne.wins + game.teamOne.losses + 1
+            swissGameController.submitGame(game)
+            close()
+        }
+    }
+
+    private fun isGameValid(): Boolean {
+        return scoreOneProperty.value != scoreTwoProperty.value
     }
 }
