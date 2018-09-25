@@ -17,20 +17,20 @@ class SwissGameInputFragment : Fragment("Submit Game") {
 
     override val root = fieldset {
         label {
-            text = game.teamOne.nameProperty().value + " vs. " + game.teamTwo.nameProperty().value
+            text = game.teamOneProperty().value + " vs. " + game.teamTwoProperty().value
             textAlignment = TextAlignment.CENTER
             paddingAll = 10
         }
 
         hbox {
-            label(game.teamOne.nameProperty().value)
+            label(game.teamOneProperty().value)
             textfield(scoreOneProperty) {
                 text = "15"
             }
         }
 
         hbox {
-            label(game.teamTwo.nameProperty().value)
+            label(game.teamTwoProperty().value)
             textfield(scoreTwoProperty) {
                 text = "13"
             }
@@ -46,9 +46,10 @@ class SwissGameInputFragment : Fragment("Submit Game") {
 
     private fun submitGame() {
         if (isGameValid()) {
+            val team = swissGameController.getTeamByName(game.teamOneProperty().value)
             game.scoreOne = scoreOneProperty.value
             game.scoreTwo = scoreTwoProperty.value
-            game.round = game.teamOne.wins + game.teamOne.losses + 1
+            game.round = team.wins + team.losses + 1
             swissGameController.submitGame(game)
             close()
         }

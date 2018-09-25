@@ -2,21 +2,28 @@ package com.jdavis.roundnetrating.mainview
 
 import com.jdavis.roundnetrating.elo.view.EloMainView
 import com.jdavis.roundnetrating.swiss.view.SwissMainView
+import javafx.scene.text.TextAlignment
 import tornadofx.*
 
 class MainView : View("Roundnet Rating") {
 
     override val root =
-            vbox {
-                paddingAll = 100
-                button {
-                    text = "ELO"
-                    action {
-                        openEloPage()
-                    }
-                }
+            hbox {
+                paddingAll = 1080
+//                button {
+//                    text = "ELO"
+//                    minWidth = 50.0
+//                    minHeight = 50.0
+//                    paddingRight = 25
+//                    action {
+//                        openEloPage()
+//                    }
+//                }
                 button {
                     text = "Swiss"
+                    textAlignment = TextAlignment.CENTER
+                    minWidth = 50.0
+                    minHeight = 50.0
                     action {
                         openSwissPage()
                     }

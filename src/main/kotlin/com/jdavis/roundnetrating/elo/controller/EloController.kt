@@ -1,5 +1,6 @@
 package com.jdavis.roundnetrating.elo.controller
 
+import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
 import tornadofx.*
@@ -8,26 +9,42 @@ import kotlin.math.roundToInt
 
 class EloController : Controller() {
 
+    private val db: DatabaseDAO by inject()
     private val ratingScaleK = 32
     private var ratingDelta = 0
     private var teamOneExpectedWinRate: Double = 0.5
+    private var teamList = mutableListOf<Team>()
+    private var teamOne = Team()
+    private var teamTwo = Team()
 
+    init {
+        teamList = db.getTeams()
+    }
     fun updateEloOfMatch(game: Game) {
-        game.teamOne.eloRating = getTeamEloRating(game.teamOne)
-        game.teamTwo.eloRating = getTeamEloRating(game.teamTwo)
+        teamList = db.getTeams()
+
+        teamOne = getTeamByName(game.teamOne)
+        teamTwo = getTeamByName(game.teamTwo)
+        teamOne.eloRating = getTeamEloRating(teamOne)
+        teamTwo.eloRating = getTeamEloRating(teamTwo)
 
         val winningTeam = getWinningTeam(game)
         val losingTeam = getLosingTeam(game)
 
-        setTeamExpectedWinRate(game.teamOne.eloRating, game.teamTwo.eloRating)
-        val marginOfVictoryMultiplier = getMOVOne(abs(game.scoreOne - game.scoreTwo), winningTeam.eloRating, losingTeam.eloRating)
+        setTeamExpectedWinRate(teamOne.eloRating, teamTwo.eloRating)
+        val marginOfVictoryMultiplier =
+                getMOVOne(abs(game.scoreOne - game.scoreTwo),
+                        getTeamByName(winningTeam).eloRating,
+                        getTeamByName(losingTeam).eloRating)
+
         ratingDelta = getRatingDelta(marginOfVictoryMultiplier).roundToInt()
 
         updateTeamELO(winningTeam, losingTeam)
     }
 
     private fun getTeamEloRating(team: Team) : Int {
-        return (team.playerOne.eloRating + team.playerTwo.eloRating) / 2
+        return team.eloRating
+        //return (team.playerOne.eloRating + team.playerTwo.eloRating) / 2
     }
 
     private fun setTeamExpectedWinRate(teamOneRating: Int, teamTwoRating: Int) {
@@ -37,14 +54,14 @@ class EloController : Controller() {
         teamOneExpectedWinRate = teamOneVal / (teamOneVal + teamTwoVal)
     }
 
-    private fun getWinningTeam(game: Game): Team {
+    private fun getWinningTeam(game: Game): String {
         return when {
             game.scoreOne > game.scoreTwo -> game.teamOne
             else -> game.teamTwo
         }
     }
 
-    private fun getLosingTeam(game: Game): Team {
+    private fun getLosingTeam(game: Game): String {
         return when {
             game.scoreOne < game.scoreTwo -> game.teamOne
             else -> game.teamTwo
@@ -60,13 +77,32 @@ class EloController : Controller() {
         return kotlin.math.ln(abs(pointDifferential) + 1.0) * (2.2 / ((winningTeamElo - losingTeamElo) * .001 + 2.2))
     }
 
-    private fun updateTeamELO(winningTeam: Team, losingTeam: Team) {
-        updatePlayerElo(winningTeam, ratingDelta)
-        updatePlayerElo(losingTeam, -ratingDelta)
+    private fun updateTeamELO(winningTeam: String, losingTeam: String) {
+        val one = getTeamByName(winningTeam)
+        val two = getTeamByName(losingTeam)
+
+        one.eloRating += ratingDelta
+        two.eloRating -= ratingDelta
+
+        db.updateTeam(one.name, one)
+        db.updateTeam(two.name, two)
+
+//        updatePlayerElo(one, ratingDelta)
+//        updatePlayerElo(two, -ratingDelta)
     }
 
     private fun updatePlayerElo(team: Team, ratingDelta: Int) {
-        team.playerOne.eloRating += ratingDelta
-        team.playerTwo.eloRating += ratingDelta
+//        team.playerOne.eloRating += ratingDelta
+//        team.playerTwo.eloRating += ratingDelta
+    }
+
+    private fun getTeamByName(name: String): Team {
+        for (team in teamList) {
+            if (team.name.equals(name, true)) {
+                return team
+            }
+        }
+
+        return Team()
     }
 }

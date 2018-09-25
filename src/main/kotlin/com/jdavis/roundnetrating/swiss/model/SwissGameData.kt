@@ -2,19 +2,23 @@ package com.jdavis.roundnetrating.swiss.model
 
 import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.model.Game
+import com.jdavis.roundnetrating.model.Team
 import tornadofx.*
 
 class SwissGameData : Controller() {
     private val db: DatabaseDAO by inject()
 
-    var gameList: HashMap<Int, MutableList<Game>> = hashMapOf()
+    var gamesMap: HashMap<Int, MutableList<Game>> = hashMapOf()
+    var gamesList: MutableList<Game> = mutableListOf()
+    var teamsList: MutableList<Team> = mutableListOf()
 
     fun insertGame(round: Int, game: Game) {
-        if (!gameList.containsKey(round)) {
-            gameList[round] = mutableListOf()
+        if (!gamesMap.containsKey(round)) {
+            gamesMap[round] = mutableListOf()
         }
 
-        gameList[round]?.add(game)
+        gamesList.add(game)
+        gamesMap[round]?.add(game)
     }
 
     fun insertGameIntoDb(game: Game) {
@@ -22,18 +26,44 @@ class SwissGameData : Controller() {
     }
 
     fun getGamesInRound(round: Int): MutableList<Game> {
-        val allGamesList = db.getAllGames()
-        gameList.clear()
+        gamesMap.clear()
 
-        for (game in allGamesList) {
+        for (game in db.getAllGames()) {
             insertGame(game.round, game)
         }
 
-        return if (gameList.containsKey(round)) {
-            gameList.getValue(round)
+        return if (gamesMap.containsKey(round)) {
+            gamesMap.getValue(round)
         } else {
-            gameList[round] = mutableListOf()
+            gamesMap[round] = mutableListOf()
             mutableListOf()
         }
+    }
+
+    fun getAllGames(): MutableList<Game> {
+        gamesList.clear()
+
+        for (game in db.getAllGames()) {
+            gamesList.add(game)
+        }
+
+        return gamesList
+    }
+
+    /**
+     * Team Section
+     */
+    fun getAllTeams(): MutableList<Team> {
+        teamsList.clear()
+
+        for (team in db.getTeams()) {
+            teamsList.add(team)
+        }
+
+        return teamsList
+    }
+
+    fun insertTeam(team: Team) {
+        teamsList.add(team)
     }
 }

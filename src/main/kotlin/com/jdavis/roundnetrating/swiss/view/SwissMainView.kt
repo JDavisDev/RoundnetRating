@@ -9,13 +9,14 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.scene.control.TabPane
-import javafx.scene.paint.Color
+import javafx.scene.input.KeyCode
 import javafx.stage.StageStyle
 import tornadofx.*
 
+/**
+ * Main View Screen
+ */
 class SwissMainView : View("Swiss") {
-
-
     override val root = tabpane {
         tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
 
@@ -28,13 +29,18 @@ class SwissMainView : View("Swiss") {
     }
 }
 
+/**
+ * Standings Tab View
+ */
 class StandingsTab : View() {
     private val dbController: DatabaseDAO by inject()
+    private val swissGameData: SwissGameData by inject()
     private var teamList: ObservableList<Team>
     private val newTeamInput = SimpleStringProperty()
 
     init {
-        teamList = FXCollections.observableList(dbController.teamList)
+        swissGameData.getAllTeams()
+        teamList = FXCollections.observableList(swissGameData.teamsList)
     }
 
     override val root =
@@ -44,37 +50,51 @@ class StandingsTab : View() {
                         goHome()
                     }
                 }
+
                 fieldset {
                     field("New Team: ") {
-                        textfield(newTeamInput)
+                        textfield(newTeamInput) {
+                            setOnKeyPressed {
+                                if (it.code == KeyCode.ENTER) {
+                                    addPlayer()
+                                }
+                            }
+                        }
                     }
-
                     button("Add Team") {
                         action {
-                            if (newTeamInput.value != null && newTeamInput.value.isNotEmpty()) {
-                                dbController.insertTeam(newTeamInput.value)
-                                teamList.add(
-                                        Team(teamList.size + 1, newTeamInput.value, 1500,
-                                                null, null, 0, 0,
-                                                0, 0, false))
-                            }
-                            newTeamInput.value = ""
+                            addPlayer()
                         }
                     }
 
                     tableview(teamList) {
                         column("ID", Team::idProperty)
-                        column("Name", Team::nameProperty)
+                        column("Name", Team::nameProperty).contentWidth(5.0)
                         column("Wins", Team::winsProperty)
                         column("Losses", Team::lossesProperty)
                         column("Points", Team::swissPointsProperty)
                         column("Point Differential", Team::pointDiffProperty)
                         column("ELO Rating", Team::eloRatingProperty)
                         column("Bye", Team::hadByeProperty)
-                        columnResizePolicy = SmartResize.POLICY
+                        smartResize()
                     }
                 }
             }
+
+    /**
+     * action methods from UI actions
+     */
+    private fun addPlayer() {
+        if (newTeamInput.value != null && newTeamInput.value.isNotEmpty()) {
+            dbController.insertTeam(newTeamInput.value)
+            teamList.add(
+                    Team(teamList.size + 1, newTeamInput.value, 1500,
+                            null, null, 0, 0,
+                            0, 0, false))
+            newTeamInput.value = ""
+        }
+
+    }
 
     private fun goHome() {
         //close()
@@ -82,13 +102,17 @@ class StandingsTab : View() {
     }
 }
 
+/**
+ * Round Games/Schedule Tab View
+ */
 class ScheduleTab : View() {
     private val swissGameData: SwissGameData by inject()
     private val gameList: ObservableList<Game>
     private val swissScheduleController: SwissScheduleController by inject()
 
     init {
-        gameList = FXCollections.observableList(swissGameData.getGamesInRound(1))
+        swissGameData.getAllGames()
+        gameList = FXCollections.observableList(swissGameData.gamesList)
     }
 
     /**
@@ -104,35 +128,27 @@ class ScheduleTab : View() {
                 }
             }
 
-            // swiss rounds
-            for (round in swissGameData.gameList.keys) {
-                label("Round " + round.toString())
-
-                hbox(20) {
-                    for (game in gameList) {
-                        if (game.round != 0 && game.round == round) {
-                            button {
-                                text = game.teamOne.nameProperty().value + " vs. " + game.teamTwo.nameProperty().value
-                                action {
-                                    openGameInputFragment(game)
-                                }
-
-                                paddingAll = 10.0
-
-                                if (game.isReported) {
-                                    style {
-                                        backgroundColor += Color.GREEN
-                                    }
-                                }
-                            }
-                        }
-                    }
+            tableview(gameList) {
+                column("ID", Game::idProperty)
+                column("Round", Game::roundProperty)
+                column("Team One", Game::teamOneProperty).contentWidth(5.0)
+                column("Score One", Game::scoreOneProperty)
+                column("Team Two", Game::teamTwoProperty).contentWidth(5.0)
+                column("Score Two", Game::scoreTwoProperty)
+                column("Reported", Game::isReportedProperty)
+                smartResize()
+                onUserSelect {
+                    openGameInputFragment(it)
                 }
             }
         }
     }
 
+    /**
+     * UI Action method
+     */
     private fun openGameInputFragment(game: Game) {
+        if (game.isReported) return
         find<SwissGameInputFragment>(SwissGameInputFragment::game to game).openModal(stageStyle = StageStyle.DECORATED)
     }
 }

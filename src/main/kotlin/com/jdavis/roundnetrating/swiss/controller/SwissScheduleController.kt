@@ -14,14 +14,28 @@ class SwissScheduleController : Controller() {
 
     private var floatingTeamsList = mutableListOf<Team>()
     private var teamList = dbController.getTeams()
-    private var round: Int = 1
+    private var round: Int = setRound()
 
     fun generateMatchups() {
-        teamList = dbController.getTeams()
-        sortTeams(teamList)
-        groupTeamsBySwissPoints()
-        resetValues()
-        round += 1
+        teamList = swissGameData.getAllTeams()
+
+        if (teamList.size > 1) {
+            setRound()
+            sortTeams(teamList)
+            groupTeamsBySwissPoints()
+            resetValues()
+        }
+    }
+
+    private fun setRound(): Int {
+        round = 1
+        for (team in teamList) {
+            if (round < team.wins + team.losses + 1) {
+                round = team.wins + team.losses + 1
+            }
+        }
+
+        return round
     }
 
     private fun sortTeams(list: MutableList<Team>) {
@@ -66,13 +80,17 @@ class SwissScheduleController : Controller() {
                 }
             }
 
-            createRoundMatchups(round, tempList)
+            if (tempList.size > 0) {
+                createRoundMatchups(tempList)
+            }
         }
 
-        createMatchupsFromFloatingTeams()
+        if (floatingTeamsList.size > 0) {
+            createMatchupsFromFloatingTeams()
+        }
     }
 
-    private fun createRoundMatchups(round: Int, list: MutableList<Team>) {
+    private fun createRoundMatchups(list: MutableList<Team>) {
         // odd number?
         if (list.size % 2 != 0 || list.size == 1) {
             // add the middle most team to be the floater
@@ -86,8 +104,11 @@ class SwissScheduleController : Controller() {
             val teamOne = list[index]
             val teamTwo = list[list.size / 2 + index]
 
-            swissGameData.insertGame(round, createNewGame(round, teamOne, teamTwo))
-            swissGameData.insertGameIntoDb(createNewGame(round, teamOne, teamTwo))
+            if (isMatchupUnique(teamOne.name, teamTwo.name)) {
+                swissGameData.insertGame(round, createNewGame(teamOne, teamTwo))
+                swissGameData.insertGameIntoDb(createNewGame(teamOne, teamTwo))
+                swissGameData.gamesList = swissGameData.getAllGames()
+            }
         }
     }
 
@@ -99,13 +120,16 @@ class SwissScheduleController : Controller() {
             val teamOne = floatingTeamsList[index]
             val teamTwo = floatingTeamsList[index + 1]
 
-            swissGameData.insertGame(round, createNewGame(round, teamOne, teamTwo))
-            swissGameData.insertGameIntoDb(createNewGame(round, teamOne, teamTwo))
+            if (isMatchupUnique(teamOne.name, teamTwo.name)) {
+                swissGameData.insertGame(round, createNewGame(teamOne, teamTwo))
+                swissGameData.insertGameIntoDb(createNewGame(teamOne, teamTwo))
+                swissGameData.gamesList = swissGameData.getAllGames()
+            }
         }
     }
 
-    private fun createNewGame(round: Int, teamOne: Team, teamTwo: Team): Game {
-        return Game(null, round, teamOne, 0, teamTwo, 0)
+    private fun createNewGame(teamOne: Team, teamTwo: Team): Game {
+        return Game(null, round, teamOne.name, 0, teamTwo.name, 0, false)
     }
 
     private fun giveTeamBye(team: Team) {
@@ -113,8 +137,15 @@ class SwissScheduleController : Controller() {
         team.swissPoints += 1
     }
 
-    private fun isMatchupUnique(): Boolean {
+    private fun isMatchupUnique(teamOne: String, teamTwo: String): Boolean {
         // check if they've played each other
+        for (game in swissGameData.getAllGames()) {
+            if ((game.teamOne == teamOne && game.teamTwo == teamTwo) ||
+                    (game.teamTwo == teamOne && game.teamOne == teamTwo)) {
+                return false
+            }
+        }
+
         return true
     }
 }

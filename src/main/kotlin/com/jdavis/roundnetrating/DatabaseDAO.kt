@@ -23,8 +23,89 @@ class DatabaseDAO : Controller() {
         teamList = getTeams()
     }
 
+    fun insertGame(game: com.jdavis.roundnetrating.model.Game) {
+        transaction {
+            Game.insert {
+                it[teamOneName] = game.teamOne
+                it[teamTwoName] = game.teamTwo
+                it[isReported] = game.isReported
+                it[round] = game.round
+                it[scoreOne] = game.scoreOne
+                it[scoreTwo] = game.scoreTwo
+            }
+        }
+    }
+
+    fun updateGame(game: com.jdavis.roundnetrating.model.Game) {
+        transaction {
+            Game.update({ Game.id eq game.id }) {
+                it[scoreOne] = game.scoreOne
+                it[scoreTwo] = game.scoreTwo
+                it[isReported] = true
+            }
+        }
+    }
+
+    fun getAllGames(): MutableList<com.jdavis.roundnetrating.model.Game> {
+        val returnList = mutableListOf<com.jdavis.roundnetrating.model.Game>()
+
+        transaction {
+            val resultSet = Game.selectAll()
+            resultSet.forEach {
+                returnList.add(
+                        Game(it[Game.id],
+                                it[Game.round],
+                                it[Game.teamOneName],
+                                it[Game.scoreOne],
+                                it[Game.teamTwoName],
+                                it[Game.scoreTwo],
+                                it[Game.isReported]))
+            }
+        }
+
+        return returnList
+    }
+
+    fun insertTeam(teamName: String) {
+        transaction {
+            Team.insert {
+                it[name] = teamName
+                it[eloRating] = 1500
+                it[wins] = 0
+                it[losses] = 0
+                it[swissPoints] = 0
+                it[hadBye] = false
+                it[pointDiff] = 0
+            }
+        }
+    }
+
+    fun updateTeam(teamName: String, team: com.jdavis.roundnetrating.model.Team) {
+        transaction {
+            Team.update({ Team.name eq teamName }) {
+                it[name] = teamName
+                it[eloRating] = team.eloRating
+                it[wins] = team.wins
+                it[losses] = team.losses
+                it[swissPoints] = team.swissPoints
+                it[hadBye] = team.hadBye
+                it[pointDiff] = team.pointDiff
+            }
+        }
+    }
+
+    private fun getTeamByName(name: String): com.jdavis.roundnetrating.model.Team {
+        for (team in teamList) {
+            if (team.name == name) {
+                return team
+            }
+        }
+
+        return Team()
+    }
+
     fun getTeams(): MutableList<com.jdavis.roundnetrating.model.Team> {
-        var returnList = mutableListOf<com.jdavis.roundnetrating.model.Team>()
+        val returnList = mutableListOf<com.jdavis.roundnetrating.model.Team>()
 
         transaction {
             val resultSet = Team.selectAll()
@@ -46,74 +127,6 @@ class DatabaseDAO : Controller() {
 
         teamList = returnList
         return returnList
-    }
-
-    fun insertTeam(teamName: String) {
-        transaction {
-            Team.insert {
-                it[name] = teamName
-                it[eloRating] = 1500
-                it[wins] = 0
-                it[losses] = 0
-                it[swissPoints] = 0
-                it[hadBye] = false
-                it[pointDiff] = 0
-            }
-        }
-    }
-
-    fun insertGame(game: com.jdavis.roundnetrating.model.Game) {
-        transaction {
-            Game.insert {
-                it[teamOneName] = game.teamOne.name
-                it[teamTwoName] = game.teamTwo.name
-                it[isReported] = game.isReported
-                it[round] = game.round
-                it[scoreOne] = game.scoreOne
-                it[scoreTwo] = game.scoreTwo
-            }
-        }
-    }
-
-    fun getAllGames(): MutableList<com.jdavis.roundnetrating.model.Game> {
-        val returnList = mutableListOf<com.jdavis.roundnetrating.model.Game>()
-
-        transaction {
-            val resultSet = Game.selectAll()
-            resultSet.forEach {
-                returnList.add(
-                        Game(it[Game.id],
-                                it[Game.round],
-                                getTeamByName(it[Game.teamOneName]),
-                                it[Game.scoreOne],
-                                getTeamByName(it[Game.teamTwoName]),
-                                it[Game.scoreTwo]))
-            }
-        }
-
-        return returnList
-    }
-
-    fun updateTeam(teamName: String, team: com.jdavis.roundnetrating.model.Team) {
-        Team.update({ Team.name eq teamName }) {
-            it[name] = teamName
-            it[eloRating] = team.eloRating
-            it[wins] = team.wins
-            it[losses] = team.losses
-            it[swissPoints] = team.swissPoints
-            it[hadBye] = team.hadBye
-            it[pointDiff] = team.pointDiff
-        }
-    }
-
-    private fun getTeamByName(name: String): com.jdavis.roundnetrating.model.Team {
-        for (team in teamList) {
-            if (team.name == name) {
-                return team
-            }
-        }
-
-        return Team()
     }
 
     private object Player : Table() {
