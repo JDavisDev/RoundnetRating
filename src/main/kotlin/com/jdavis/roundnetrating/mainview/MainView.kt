@@ -9,7 +9,7 @@ class MainView : View("Roundnet Rating") {
 
     override val root =
             hbox {
-                paddingAll = 1080
+                paddingAll = 800
 //                button {
 //                    text = "ELO"
 //                    minWidth = 50.0

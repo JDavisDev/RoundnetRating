@@ -131,12 +131,12 @@ class DatabaseDAO : Controller() {
 
     private object Player : Table() {
         val id = integer("id").autoIncrement()
-        val name = varchar("name", 25).primaryKey()
+        val name = varchar("name", 100).primaryKey()
     }
 
     object Team : Table() {
         val id = integer("id").autoIncrement()
-        val name = varchar("name", 40).primaryKey()
+        val name = varchar("name", 100).primaryKey()
         val wins = integer("wins")
         val losses = integer("losses")
         val swissPoints = integer("swisspoints")
@@ -147,8 +147,8 @@ class DatabaseDAO : Controller() {
 
     object Game : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val teamOneName = varchar("teamOneName", 25).references(Team.name)
-        val teamTwoName = varchar("teamTwoName", 25).references(Team.name)
+        val teamOneName = varchar("teamOneName", 100).references(Team.name)
+        val teamTwoName = varchar("teamTwoName", 100).references(Team.name)
         val isReported = bool("isReported")
         val round = integer("round")
         val scoreOne = integer("scoreOne")

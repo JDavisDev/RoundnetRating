@@ -3,11 +3,16 @@ package com.jdavis.roundnetrating.swiss.view
 import com.jdavis.roundnetrating.DatabaseDAO
 import com.jdavis.roundnetrating.model.Game
 import com.jdavis.roundnetrating.model.Team
+import com.jdavis.roundnetrating.swiss.controller.SwissGameController
 import com.jdavis.roundnetrating.swiss.controller.SwissScheduleController
 import com.jdavis.roundnetrating.swiss.model.SwissGameData
+import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.scene.control.Alert
+import javafx.scene.control.ButtonType
 import javafx.scene.control.TabPane
 import javafx.scene.input.KeyCode
 import javafx.stage.StageStyle
@@ -25,6 +30,9 @@ class SwissMainView : View("Swiss") {
         }
         tab("Schedule") {
             add<ScheduleTab>()
+        }
+        tab("Games") {
+            add<GamesTab>()
         }
     }
 }
@@ -92,6 +100,10 @@ class StandingsTab : View() {
                             null, null, 0, 0,
                             0, 0, false))
             newTeamInput.value = ""
+            val tab = GamesTab()
+            tab.teamList.add(Team(teamList.size + 1, newTeamInput.value, 1500,
+                    null, null, 0, 0,
+                    0, 0, false))
         }
 
     }
@@ -150,5 +162,89 @@ class ScheduleTab : View() {
     private fun openGameInputFragment(game: Game) {
         if (game.isReported) return
         find<SwissGameInputFragment>(SwissGameInputFragment::game to game).openModal(stageStyle = StageStyle.DECORATED)
+    }
+}
+
+class GamesTab : View() {
+    private val dbController: DatabaseDAO by inject()
+    private val swissGameController: SwissGameController by inject()
+
+    val teamOneScoreInput = SimpleIntegerProperty()
+    val teamTwoScoreInput = SimpleIntegerProperty()
+    val teamOneProperty = SimpleObjectProperty<Team>()
+    val teamTwoProperty = SimpleObjectProperty<Team>()
+    var teamList: ObservableList<Team>
+
+    init {
+        dbController.getTeams()
+        teamList = FXCollections.observableList(dbController.teamList)
+    }
+
+    override val root = vbox {
+        setMinSize(400.0, 1200.0)
+
+        form {
+            fieldset {
+                field("Team One") {
+                    combobox(teamOneProperty, teamList) {
+                        cellFormat {
+                            text = it.name
+                        }
+                    }
+                }
+
+                field("Team One Score") {
+                    textfield(teamOneScoreInput)
+                }
+
+                field("Team Two") {
+                    combobox(teamTwoProperty, teamList) {
+                        cellFormat {
+                            text = it.name
+                        }
+                    }
+                }
+
+                field("Team Two Score") {
+                    textfield(teamTwoScoreInput)
+                }
+
+                button {
+                    text = "Submit"
+                    action {
+                        submitGame()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun submitGame() {
+        if (isGameValid()) {
+            val teamOne = teamOneProperty.value
+            val teamTwo = teamTwoProperty.value
+            val scoreOne = teamOneScoreInput.value
+            val scoreTwo = teamTwoScoreInput.value
+            val round = teamOne.wins + teamTwo.losses + 1
+
+            val game = Game(1, round, teamOne.name, scoreOne, teamTwo.name, scoreTwo, true)
+            swissGameController.submitGame(game)
+            resetForm()
+            alert(Alert.AlertType.NONE, "Success", "Game submitted.", ButtonType.OK)
+        } else {
+            alert(Alert.AlertType.ERROR, "Error", "Check that players and scores are unique.", ButtonType.OK)
+        }
+    }
+
+    private fun isGameValid(): Boolean {
+        return teamOneScoreInput.value != teamTwoScoreInput.value && (teamOneProperty.value.name != teamTwoProperty.value.name)
+    }
+
+    private fun resetForm() {
+        teamOneScoreInput.value = 0
+        teamTwoScoreInput.value = 0
+
+        teamOneProperty.set(null)
+        teamTwoProperty.set(null)
     }
 }

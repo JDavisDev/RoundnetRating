@@ -91,13 +91,25 @@ class SwissScheduleController : Controller() {
     }
 
     private fun createRoundMatchups(list: MutableList<Team>) {
+        val middleTeam: Team?
+
+        // we've already been thru and the top list found a floater, pair immediately
+        if (floatingTeamsList.size > 0) {
+            val team = floatingTeamsList[0]
+            val teamTwo = list[0]
+            floatingTeamsList.removeAt(0)
+            list.removeAt(0)
+            createRoundMatchups(mutableListOf(team, teamTwo))
+        }
+
         // odd number?
         if (list.size % 2 != 0 || list.size == 1) {
             // add the middle most team to be the floater
             // this way, top and bottom seeds of this list play each other
-            val middleTeam = list[list.size / 2]
+            middleTeam = list[list.size / 2]
             floatingTeamsList.add(middleTeam)
             list.remove(middleTeam)
+
         }
 
         for (index in 0 until list.size / 2) {
