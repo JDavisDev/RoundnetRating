@@ -31,20 +31,24 @@ class SwissMainView : View("Swiss") {
         tab("Schedule") {
             add<ScheduleTab>()
         }
-        tab("Games") {
-            add<GamesTab>()
-        }
     }
 }
 
 /**
  * Standings Tab View
  */
+
 class StandingsTab : View() {
+    private val swissGameController: SwissGameController by inject()
     private val dbController: DatabaseDAO by inject()
     private val swissGameData: SwissGameData by inject()
     private var teamList: ObservableList<Team>
     private val newTeamInput = SimpleStringProperty()
+
+    private val teamOneScoreInput = SimpleIntegerProperty()
+    private val teamTwoScoreInput = SimpleIntegerProperty()
+    private val teamOneProperty = SimpleObjectProperty<Team>()
+    private val teamTwoProperty = SimpleObjectProperty<Team>()
 
     init {
         swissGameData.getAllTeams()
@@ -53,12 +57,6 @@ class StandingsTab : View() {
 
     override val root =
             form {
-                button("Back") {
-                    action {
-                        goHome()
-                    }
-                }
-
                 fieldset {
                     field("New Team: ") {
                         textfield(newTeamInput) {
@@ -72,6 +70,43 @@ class StandingsTab : View() {
                     button("Add Team") {
                         action {
                             addPlayer()
+                        }
+                        paddingAll = 15.0
+                    }
+
+                    form {
+                        fieldset {
+                            field("Team One") {
+                                combobox(teamOneProperty, teamList) {
+                                    cellFormat {
+                                        text = it.name
+                                    }
+                                }
+                            }
+
+                            field("Team One Score") {
+                                textfield(teamOneScoreInput)
+                            }
+
+                            field("Team Two") {
+                                combobox(teamTwoProperty, teamList) {
+                                    cellFormat {
+                                        text = it.name
+                                    }
+                                }
+                            }
+
+                            field("Team Two Score") {
+                                textfield(teamTwoScoreInput)
+                            }
+
+                            button {
+                                text = "Submit"
+                                action {
+                                    submitGame()
+                                }
+                                paddingAll = 15.0
+                            }
                         }
                     }
 
@@ -100,19 +135,42 @@ class StandingsTab : View() {
                             null, null, 0, 0,
                             0, 0, false))
             newTeamInput.value = ""
-            val tab = GamesTab()
-            tab.teamList.add(Team(teamList.size + 1, newTeamInput.value, 1500,
-                    null, null, 0, 0,
-                    0, 0, false))
         }
+    }
 
+    private fun submitGame() {
+        if (isGameValid()) {
+            val teamOne = teamOneProperty.value
+            val teamTwo = teamTwoProperty.value
+            val scoreOne = teamOneScoreInput.value
+            val scoreTwo = teamTwoScoreInput.value
+            val round = teamOne.wins + teamTwo.losses + 1
+
+            val game = Game(1, round, teamOne.name, scoreOne, teamTwo.name, scoreTwo, true)
+            swissGameController.submitGame(game)
+            resetForm()
+            alert(Alert.AlertType.NONE, "Success", "Game submitted.", ButtonType.OK)
+        } else {
+            alert(Alert.AlertType.ERROR, "Error", "Check that players and scores are unique.", ButtonType.OK)
+        }
+    }
+
+    private fun isGameValid(): Boolean {
+        return teamOneScoreInput.value != teamTwoScoreInput.value && (teamOneProperty.value != teamTwoProperty.value)
+    }
+
+    private fun resetForm() {
+        teamOneScoreInput.value = 0
+        teamTwoScoreInput.value = 0
+
+        teamOneProperty.set(null)
+        teamTwoProperty.set(null)
     }
 
     private fun goHome() {
-        //close()
-        //replaceWith(MainView::class)
     }
 }
+
 
 /**
  * Round Games/Schedule Tab View

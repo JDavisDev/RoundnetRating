@@ -8,7 +8,7 @@ import tornadofx.*
 class SwissGameData : Controller() {
     private val db: DatabaseDAO by inject()
 
-    var gamesMap: HashMap<Int, MutableList<Game>> = hashMapOf()
+    private var gamesMap: HashMap<Int, MutableList<Game>> = hashMapOf()
     var gamesList: MutableList<Game> = mutableListOf()
     var teamsList: MutableList<Team> = mutableListOf()
 

@@ -9,7 +9,7 @@ class MainView : View("Roundnet Rating") {
 
     override val root =
             hbox {
-                paddingAll = 800
+                paddingAll = 600
 //                button {
 //                    text = "ELO"
 //                    minWidth = 50.0
@@ -22,8 +22,8 @@ class MainView : View("Roundnet Rating") {
                 button {
                     text = "Swiss"
                     textAlignment = TextAlignment.CENTER
-                    minWidth = 50.0
-                    minHeight = 50.0
+                    minWidth = 200.0
+                    minHeight = 150.0
                     action {
                         openSwissPage()
                     }
